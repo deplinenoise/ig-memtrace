@@ -1,0 +1,18 @@
+﻿{
+  "SuppressedSymbols": [
+    "MemTrace::Encoder::BeginEvent",
+    "MemTrace::HeapAllocate",
+    "__tmainCRTStartup",
+    "RtlUserThreadStart",
+    "BaseThreadInitThunk",
+    "wWinMainCRTStartup",
+    "MemTrace::HeapFree"
+  ],
+  "EnableSuppression": true,
+  "BindAddress": "0.0.0.0",
+  "BindPort": 9811,
+  "SymbolPaths": [
+  ],
+  "ModulePathRemappings": [
+  ]
+}
