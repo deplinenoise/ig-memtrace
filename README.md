@@ -41,6 +41,8 @@ UI for selection.
 Upon starting the tool, it will accept incoming connections and start recording
 data. The main window shows statistics about the trace files being recorded.
 
+![Main Window](docs/mainwindow.png "Main Window")
+
 There is no limit to the number of files that can be concurrently recorded.
 You may record and analyze traces at the same time if desired.
 
