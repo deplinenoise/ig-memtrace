@@ -1,0 +1,42 @@
+﻿
+Initial JSON file to live next to checked-in binary.
+
+Find dialog in heap view.
+
+Need new delta view now that the time control is in.
+
+Asset heap not working on PC.
+
+Clean up File menu/open options. How to get trace files from locutus to your own machine?
+
+Detect code branch via LunaServer to figure out bin directory?
+
+Options menu access from heap view.
+
+Fragmentation view:
+- Select one heap/container?
+- Colorize allocs based on topic?
+- Fade out to white with age?
+- How to map? Customizable?
+
+After stopping a trace buttons should be accessible.
+
+Better crash proofing againt bad trace files on disk.
+
+Figure out deployment of Durango wrapped DLLs.
+
+Figure out if we can hook lower-level stuff like ntdll!NtVirtualAllocate to catch *everything*
+
+HeapAllocate() and friends should definitely be hooked. Hook HeapCreate() to figure out name?
+
+Symbol resolution dialog:
+- Fix ghetto flickering text box
+- Show report at the end with # of symbols resolved and # failed
+
+Nice to have:
+- Rename dump filenames or at least add a comment to dump.
+- Mark time recorded and length of recording in h/m/s.
+
+
+[DONE]
+Initial setup needs settings in the registry.

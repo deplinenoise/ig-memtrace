@@ -1,0 +1,6 @@
+bin
+obj
+*.pdb
+*.suo
+*.user
+pingme.txt

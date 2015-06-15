@@ -1,0 +1,8 @@
+Name: MemTrace
+Type: CSharpLib
+UseDiskSources: true
+
+NuGetPackages:
+  - { id: "Netwonsoft.Json", version: "6.0.8", targetFramework: "net45" }
+  - { id: "ObjectListView", version: "2.7.1", targetFramework: "net45" }
+
