@@ -227,14 +227,15 @@ namespace MemTrace
 
       m_Keys[index] = 0;
 
-      // Move following items that also hash to the same start index.
+      // Move following items that may have landed there due to collisions.
       uint32_t src_index = (index + 1) & kArrayMask;
 
       for (;;)
       {
         uint64_t k = m_Keys[src_index];
 
-        if (!k || (k & kArrayMask) != start_index)
+        // Stop moving if the slot is unused, or is in the right place.
+        if (!k || (k & kArrayMask) == src_index)
         {
           break;
         }
