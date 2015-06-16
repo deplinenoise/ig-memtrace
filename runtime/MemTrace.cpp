@@ -868,8 +868,55 @@ void MemTrace::InitSocket(const char *server_ip_address, int server_port)
     }
   };
 
-  InitCommon(write_block_fn);
-  S.m_Socket = sock;
+  if (!was_active)
+  {
+    InitCommon(write_block_fn);
+    S.m_Socket = sock;
+  }
+  else
+  {
+    S.m_Socket = sock;
+    MemTracePrint("MemTrace: Switching to socket transport\n");
+    S.m_Encoder.Flush();
+
+    FileHandle fh = S.m_BootFile;
+
+    if (int64_t sz = FileSize(fh))
+    {
+      FileSeekTo(fh, 0);
+
+      char buf[1024];
+      size_t remain = (size_t) sz;
+      while (remain)
+      {
+        size_t copy_size = remain;
+        if (copy_size > ARRAY_SIZE(buf))
+          copy_size = ARRAY_SIZE(buf);
+
+        FileRead(fh, buf, copy_size);
+        if (copy_size != send(sock, buf, (int) copy_size, 0))
+        {
+          MemTracePrint("send() failed while uploading trace file, shutting down.\n");
+          error = true;
+        }
+
+        remain -= copy_size;
+      }
+    }
+
+    FileClose(fh);
+    S.m_BootFile = kInvalidFileHandle;
+
+    // Clean up the temporary file.
+#if defined(MEMTRACE_WINDOWS)
+    DeleteFileA(S.m_BootFileName);
+#else
+    remove(S.m_BootFileName);
+#endif
+
+    // Switch to socket transmit method
+    S.m_Encoder.SetTransmitFn(write_block_fn);
+  }
 
   if (was_active)
   {

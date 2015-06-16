@@ -216,6 +216,12 @@ namespace MemTrace
 
   FileHandle FileOpenForReadWrite(const char* fn);
 
+  void FileSeekTo(FileHandle fh, int64_t pos);
+
+  int64_t FileSize(FileHandle fh);
+
+  void FileRead(FileHandle fh, void* buffer, size_t size);
+
   void FileWrite(FileHandle fh, const void* data, size_t size);
 
   void FileClose(FileHandle fh);

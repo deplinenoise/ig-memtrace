@@ -27,6 +27,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #if defined(MEMTRACE_UNIX)
 #include <sys/time.h>
+#include <sys/stat.h>
 #include <arpa/inet.h>
 #include <pthread.h>
 #include <fcntl.h>
@@ -99,6 +100,23 @@ void MemTrace::FileClose(FileHandle fh)
   close(fh);
 }
 
+void MemTrace::FileSeekTo(FileHandle fh, int64_t pos)
+{
+  lseek(fh, pos, SEEK_SET);
+}
+
+int64_t MemTrace::FileSize(FileHandle fh)
+{
+  struct stat st;
+  fstat(fh, &st);
+  return st.st_size;
+}
+
+void MemTrace::FileRead(FileHandle fh, void* buffer, size_t size)
+{
+  read(fh, buffer, size);
+}
+
 int MemTrace::Vsnprintf(char* buffer, size_t buffer_size, const char* fmt, va_list args)
 {
   int rc = vsnprintf(buffer, buffer_size, fmt, args);
@@ -151,6 +169,26 @@ void MemTrace::FileWrite(FileHandle fh, const void* data, size_t size)
 void MemTrace::FileClose(FileHandle fh)
 {
   ::CloseHandle(fh);
+}
+
+void MemTrace::FileSeekTo(FileHandle fh, int64_t pos)
+{
+  LARGE_INTEGER l;
+  l.QuadPart = pos;
+  SetFilePointerEx(fh, l, NULL, FILE_BEGIN);
+}
+
+int64_t MemTrace::FileSize(FileHandle fh)
+{
+  LARGE_INTEGER val;
+  GetFileSizeEx(fh, &val);
+  return val.QuadPart;
+}
+
+void MemTrace::FileRead(FileHandle fh, void* buffer, size_t size)
+{
+  DWORD bytes_read;
+  ::ReadFile(fh, buffer, (DWORD) size, &bytes_read, NULL);
 }
 
 int MemTrace::Vsnprintf(char* buffer, size_t buffer_size, const char* fmt, va_list args)
