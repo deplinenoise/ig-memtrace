@@ -176,7 +176,7 @@ Here are the basic steps needed to integrate MemTrace into your application:
 0. Run the following commands to download the minhook headers for Windows builds:
 
         git submodule init
-        git submodule checkout
+        git submodule update
 
 1. Add the client component source code to your app.
 
