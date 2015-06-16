@@ -153,6 +153,7 @@ namespace MemTrace
   //-----------------------------------------------------------------------------
   // Minimal hash table mapping 64-bit numbers to 64-bit numbers.
   // Used exclusively by the slot cache. 
+  //
   template <size_t MaxCount>
   struct FixedHash64
   {
@@ -224,27 +225,30 @@ namespace MemTrace
         index = (index + 1) & kArrayMask;
       }
 
+      m_Keys[index] = 0;
+
       // Move following items that also hash to the same start index.
       uint32_t src_index = (index + 1) & kArrayMask;
 
       for (;;)
       {
         uint64_t k = m_Keys[src_index];
-        
+
         if (!k || (k & kArrayMask) != start_index)
         {
           break;
         }
 
-        m_Keys[index] = k;
-        m_Keys[src_index] = 0;
+        m_Keys[index]       = k;
+        m_Keys[src_index]   = 0;
+        m_Values[index]     = m_Values[src_index];
+        m_Values[src_index] = 0;
 
-        index = src_index;
-        src_index = (src_index + 1) & kArrayMask;
+        index               = src_index;
+        src_index           = (src_index + 1) & kArrayMask;
       }
     }
   };
-  
 
   //-----------------------------------------------------------------------------
   // An O(1) windowing lookup structure for compression purposes.
