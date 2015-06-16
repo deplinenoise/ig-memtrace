@@ -218,7 +218,6 @@ namespace MemTrace
     void Remove(uint64_t key)
     {
       uint32_t index = uint32_t(key & kArrayMask);
-      uint32_t start_index = index;
 
       while (m_Keys[index] && m_Keys[index] != key)
       {
