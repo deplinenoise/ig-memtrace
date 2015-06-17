@@ -148,7 +148,7 @@ namespace MemTrace
 
   //-----------------------------------------------------------------------------
   // Platform-dependent routine to walk stack and generate a backtrace
-  static int GetBackTrace(uint64_t frames[], uint64_t *hash_out, int skip_levels);
+  static int GetBackTrace(uintptr_t frames[], uint64_t *hash_out, int skip_levels);
 
   //-----------------------------------------------------------------------------
   // Minimal hash table mapping 64-bit numbers to 64-bit numbers.
@@ -486,7 +486,7 @@ namespace MemTrace
     {
       s_Stats.m_StackCount++;
 
-      uint64_t frames[kMaxFrames];
+      uintptr_t frames[kMaxFrames];
       uint64_t stack_hash;
       uint64_t seqno;
 
@@ -1246,7 +1246,7 @@ void MemTrace::RefreshLoadedModules()
 }
 
 #if defined(MEMTRACE_WINDOWS)
-int MemTrace::GetBackTrace(uint64_t frames[], uint64_t *hash_out, int skip_levels)
+int MemTrace::GetBackTrace(uintptr_t frames[], uint64_t *hash_out, int skip_levels)
 {
   DWORD hash = 0;
 
@@ -1260,7 +1260,7 @@ int MemTrace::GetBackTrace(uint64_t frames[], uint64_t *hash_out, int skip_level
 
 #elif defined(MEMTRACE_MAC)
 
-int MemTrace::GetBackTrace(uint64_t frames[], uint64_t *hash_out, int skip_levels)
+int MemTrace::GetBackTrace(uintptr_t frames[], uint64_t *hash_out, int skip_levels)
 {
   int count = backtrace((void**)frames, kMaxFrames);
   int skip_count = skip_levels > count ? count : skip_levels;
@@ -1287,7 +1287,7 @@ int MemTrace::GetBackTrace(uint64_t frames[], uint64_t *hash_out, int skip_level
 // pointer omission not being disabled. (Which is the default on most
 // compilers & platforms. You might want to do something different.)
 
-int __attribute__((noinline)) MemTrace::GetBackTrace(uint64_t frames[], uint64_t *hash_out, int skip_levels)
+int __attribute__((noinline)) MemTrace::GetBackTrace(uintptr_t frames[], uint64_t *hash_out, int skip_levels)
 {
   // Grab address of current frame.
   const uintptr_t* fp   = (const uintptr_t*) __builtin_frame_address(0);
