@@ -218,13 +218,20 @@ namespace MemTrace
     void Remove(uint64_t key)
     {
       uint32_t index = uint32_t(key & kArrayMask);
+      uint32_t start_index = index;
 
       while (m_Keys[index] && m_Keys[index] != key)
       {
         index = (index + 1) & kArrayMask;
       }
 
+      if (m_Keys[index] != key)
+      {
+        return;
+      }
+
       m_Keys[index] = 0;
+      m_Values[index] = 0;
 
       // Move following items that may have landed there due to collisions.
       uint32_t src_index = (index + 1) & kArrayMask;
@@ -233,18 +240,24 @@ namespace MemTrace
       {
         uint64_t k = m_Keys[src_index];
 
-        // Stop moving if the slot is unused, or is in the right place.
-        if (!k || (k & kArrayMask) == src_index)
+        if (!k)
         {
+          // Stop moving if the slot is unused
           break;
         }
+        else if ((k & kArrayMask) != src_index)
+        {
+          // Skip things that are in the right place.
 
-        m_Keys[index]       = k;
-        m_Keys[src_index]   = 0;
-        m_Values[index]     = m_Values[src_index];
-        m_Values[src_index] = 0;
+          uint64_t bv = m_Values[src_index];
 
-        index               = src_index;
+          m_Keys[src_index]   = 0;
+          m_Values[src_index] = 0;
+
+          Insert(k, bv);
+
+          index               = src_index;
+        }
         src_index           = (src_index + 1) & kArrayMask;
       }
     }
