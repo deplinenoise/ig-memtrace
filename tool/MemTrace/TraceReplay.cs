@@ -871,10 +871,10 @@ namespace MemTrace
   public sealed class TraceReplayStateful : TraceProcessorBase
   {
     private Dictionary<ulong, HeapInfo> m_Heaps = new Dictionary<ulong, HeapInfo>();
-    private Dictionary<ulong, HeapAllocationInfo> m_Allocs = new Dictionary<ulong, HeapAllocationInfo>();
+    private Dictionary<AllocationKey, HeapAllocationInfo> m_Allocs = new Dictionary<AllocationKey, HeapAllocationInfo>();
 
     public IReadOnlyDictionary<ulong, HeapInfo> Heaps { get { return m_Heaps; } }
-    public IReadOnlyDictionary<ulong, HeapAllocationInfo> HeapAllocations { get { return m_Allocs; } }
+    public IReadOnlyDictionary<AllocationKey, HeapAllocationInfo> HeapAllocations { get { return m_Allocs; } }
 
     public List<HeapAllocationInfo> AllocationsByAddress { get { return m_SortedAllocs; } }
     public List<HeapAllocationInfo> m_SortedAllocs = new List<HeapAllocationInfo>();
@@ -902,13 +902,14 @@ namespace MemTrace
 
     protected override void OnHeapFree(int heapId, ulong ptr, int stack_index, double time)
     {
-      m_Allocs.Remove(ptr);
+      m_Allocs.Remove(new AllocationKey { HeapId = (ulong) heapId, Address = ptr });
     }
 
     protected override void OnHeapAllocate(int heapId, ulong ptr, ulong size, int scope_type, int scope_data_str, int stack_index, double time)
     {
       var heap = FindHeap(heapId, ptr);
-      m_Allocs[ptr] = new HeapAllocationInfo
+      var key = new AllocationKey { HeapId = (ulong)heapId, Address = ptr };
+      m_Allocs[key] = new HeapAllocationInfo
       {
         ScopeType = scope_type,
         ScopeData = GetStringByIndex(scope_data_str),

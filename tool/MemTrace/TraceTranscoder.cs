@@ -8,6 +8,22 @@ using System.Threading.Tasks;
 
 namespace MemTrace
 {
+  public struct AllocationKey : IEquatable<AllocationKey>
+  {
+    public ulong HeapId;
+    public ulong Address;
+
+    public override int GetHashCode()
+    {
+      return (int) ((HeapId * 13) ^ Address);
+    }
+
+    public bool Equals(AllocationKey other)
+    {
+      return other.HeapId == this.HeapId && other.Address == this.Address;
+    }
+  }
+
   // Analyzes a trace stream as it's coming in off the network, collecting information such as:
   // - The OS it came from
   // - What marks (points of interest) are in the stream
@@ -35,7 +51,7 @@ namespace MemTrace
     // Stash output locations of create events so delete/destroy events can be linked up for backwards stream replaying
     private Dictionary<ulong, long> m_AddressCreateEvents = new Dictionary<ulong, long>();
     private Dictionary<ulong, long> m_HeapCreateEvents = new Dictionary<ulong, long>();
-    private Dictionary<ulong, long> m_AllocCreateEvents = new Dictionary<ulong, long>();
+    private Dictionary<AllocationKey, long> m_AllocCreateEvents = new Dictionary<AllocationKey, long>();
 
     // Items we need to roll back speculatively if a full event could not be read.
     private int m_SeenStackRollback = 0;
@@ -378,9 +394,10 @@ namespace MemTrace
               if (!ReadUnsigned(out heap_id, ref pos)) return;
               if (!ReadUnsigned(out addr, ref pos)) return;
               if (!ReadUnsigned(out size, ref pos)) return;
-              if (!m_AllocCreateEvents.ContainsKey(addr))
+              var key = new AllocationKey { HeapId = heap_id, Address = addr };
+              if (!m_AllocCreateEvents.ContainsKey(key))
               {
-                m_AllocCreateEvents[addr] = m_Out.BaseStream.Position;
+                m_AllocCreateEvents[key] = m_Out.BaseStream.Position;
                 BeginOutEvent();
                 m_Out.Write((uint) heap_id);
                 m_Out.Write(addr);
@@ -401,16 +418,18 @@ namespace MemTrace
               if (!ReadUnsigned(out new_addr, ref pos)) return;
               if (!ReadUnsigned(out new_size, ref pos)) return;
               long npos = m_Out.BaseStream.Position;
-              if (m_AllocCreateEvents.ContainsKey(old_addr))
+              var key = new AllocationKey { HeapId = heap_id, Address = old_addr };
+              if (m_AllocCreateEvents.ContainsKey(key))
               {
                 BeginOutEvent();
                 m_Out.Write((uint) heap_id);
                 m_Out.Write(old_addr);
                 m_Out.Write(new_addr);
                 m_Out.Write(new_size);
-                m_Out.Write(m_AllocCreateEvents[old_addr]);
-                m_AllocCreateEvents.Remove(old_addr);
-                m_AllocCreateEvents[new_addr] = npos;
+                m_Out.Write(m_AllocCreateEvents[key]);
+                m_AllocCreateEvents.Remove(key);
+                var new_key = new AllocationKey { HeapId = heap_id, Address = new_addr };
+                m_AllocCreateEvents[new_key] = npos;
               }
               else
               {
@@ -426,13 +445,14 @@ namespace MemTrace
               if (!ReadUnsigned(out addr, ref pos)) return;
               if (addr != 0)
               {
-                if (m_AllocCreateEvents.ContainsKey(addr))
+                var key = new AllocationKey { HeapId = heap_id, Address = addr };
+                if (m_AllocCreateEvents.ContainsKey(key))
                 {
                   BeginOutEvent();
                   m_Out.Write((uint)heap_id);
                   m_Out.Write(addr);
-                  m_Out.Write(m_AllocCreateEvents[addr]);
-                  m_AllocCreateEvents.Remove(addr);
+                  m_Out.Write(m_AllocCreateEvents[key]);
+                  m_AllocCreateEvents.Remove(key);
                 }
                 else
                 {
