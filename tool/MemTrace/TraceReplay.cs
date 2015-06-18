@@ -16,10 +16,20 @@ namespace MemTrace
     Recording
   }
 
-  public struct AddressRange
+  public struct AddressRange : IEquatable<AddressRange>
   {
     public ulong BaseAddress;
     public ulong SizeBytes;
+
+    public override int GetHashCode()
+    {
+      return (int) ((BaseAddress * 13) ^ SizeBytes);
+    }
+
+    public bool Equals(AddressRange other)
+    {
+      return other.BaseAddress == this.BaseAddress && other.SizeBytes == this.SizeBytes;
+    }
   };
 
   public sealed class HeapInfo
