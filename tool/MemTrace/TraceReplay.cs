@@ -452,10 +452,11 @@ namespace MemTrace
           double pct = (m_CurrentTime - start) / (end - start);
           status_callback(Math.Min(pct, 1.0));
         }
-        if (!NextEvent())
+        if (!NextEvent(secs))
           break;
         ++i;
       }
+
       while (secs < m_CurrentTime)
       {
         if (0 == (i & 1023) && status_callback != null)
@@ -463,7 +464,7 @@ namespace MemTrace
           double pct = (m_CurrentTime - start) / (end - start);
           status_callback(Math.Min(pct, 1.0));
         }
-        if (!PrevEvent())
+        if (!PrevEvent(secs))
           break;
         ++i;
       }
@@ -471,7 +472,7 @@ namespace MemTrace
       OnEndSeek(secs);
     }
 
-    protected bool NextEvent()
+    protected bool NextEvent(double? maxTime)
     {
       var v = m_MmapView;
       var pos = m_MmapPos;
@@ -485,6 +486,9 @@ namespace MemTrace
       EventHeader.Decode(out header, v, ref pos);
 
       bool hasHeapIds = MetaData.Version >= 3;
+
+      if (maxTime.HasValue && header.TimeStamp > maxTime.Value)
+        return false;
 
       m_CurrentTime = header.TimeStamp;
 
@@ -588,7 +592,7 @@ namespace MemTrace
       return true;
     }
 
-    protected bool PrevEvent()
+    protected bool PrevEvent(double? minTime)
     {
       var v = m_MmapView;
 
@@ -605,6 +609,9 @@ namespace MemTrace
 
       EventHeader header;
       EventHeader.Decode(out header, v, ref pos);
+
+      if (minTime.HasValue && minTime > header.TimeStamp)
+        return false;
 
       m_CurrentTime = header.TimeStamp;
 
@@ -998,7 +1005,7 @@ namespace MemTrace
 
       double max_time = this.MetaData.MaxTimeStamp / (double)this.MetaData.TimerFrequency;
 
-      while (NextEvent())
+      while (NextEvent(null))
       {
         if (0 == (i & 1023))
         {
