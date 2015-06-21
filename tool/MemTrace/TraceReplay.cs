@@ -607,12 +607,19 @@ namespace MemTrace
 
       bool isV3 = MetaData.Version >= 3;
 
+      EventHeader headerSkip;
+      EventHeader.Decode(out headerSkip, v, ref pos);
+
+      pos = m_MmapPos - headerSkip.BackLink;
+      var resetPos = pos;
       EventHeader header;
       EventHeader.Decode(out header, v, ref pos);
 
       if (minTime.HasValue && minTime > header.TimeStamp)
-        return false;
-
+      {
+          m_MmapPos = inpos;
+          return false;
+      }
       m_CurrentTime = header.TimeStamp;
 
       switch (header.Code)
@@ -769,7 +776,7 @@ namespace MemTrace
           throw new IOException(String.Format("Unexpected event code {0} in stream at position {1}", header.Code, m_MmapPos));
       }
 
-      m_MmapPos = inpos - header.BackLink;
+      m_MmapPos = resetPos;
       return true;
     }
 
