@@ -330,6 +330,7 @@ namespace MemTrace
   static void ErrorShutdown();
   // Hook CRT allocators.
   static void HookCrt();
+  static void UnhookCrt();
 
   //-----------------------------------------------------------------------------
   // Encodes integers and strings using variable-length encoding and windowing
@@ -703,6 +704,26 @@ static void MemTrace::InitCommon(TransmitBlockFn* write_block_fn)
 }
 
 //-----------------------------------------------------------------------------
+static void MemTrace::UnhookCrt()
+{
+#if defined(MEMTRACE_WINDOWS)
+	// On Windows, dynamically hook the CRT allocation functions to route through memtrace.
+
+	// Load minhook DLL
+	if (HMODULE minhook_module = LoadLibraryA("MinHook.x86.dll"))
+	{
+		auto MH_DisableHook_Func = (decltype(&MH_DisableHook))GetProcAddress(minhook_module, "MH_DisableHook");
+		auto MH_Uninitialize_Func = (decltype(&MH_Uninitialize))GetProcAddress(minhook_module, "MH_Uninitialize");
+
+		if (!MH_DisableHook_Func || !MH_Uninitialize_Func || MH_OK != (*MH_DisableHook_Func)(MH_ALL_HOOKS) || MH_OK != (*MH_Uninitialize_Func)())
+		{
+			DebugBreak();
+		}
+	}
+#endif
+}
+
+//-----------------------------------------------------------------------------
 static void MemTrace::HookCrt()
 {
   // @@@ If you are a licensed Durango dev, get in touch with us and we can
@@ -712,7 +733,7 @@ static void MemTrace::HookCrt()
   // On Windows, dynamically hook the CRT allocation functions to route through memtrace.
 
   // Load minhook DLL
-  if (HMODULE minhook_module = LoadLibraryA("MinHook.x64.dll"))
+  if (HMODULE minhook_module = LoadLibraryA("MinHook.x86.dll"))
   {
     auto MH_Initialize_Func = (decltype(&MH_Initialize)) GetProcAddress(minhook_module, "MH_Initialize");
     auto MH_CreateHook_Func = (decltype(&MH_CreateHook)) GetProcAddress(minhook_module, "MH_CreateHook");
@@ -723,13 +744,13 @@ static void MemTrace::HookCrt()
       DebugBreak();
     }
 
-#if _MSC_VER != 1700
+#if _MSC_VER != 1800
 #error This needs updating for the new CRT version. Talk to Andreas.
 #endif
 
 #if !defined(_DEBUG)
 
-    if (HMODULE crt_module = GetModuleHandleA("msvcr110.dll"))
+    if (HMODULE crt_module = GetModuleHandleA("msvcr120.dll"))
     {
 #define IG_WRAP_FN(symbol) { #symbol, (void*) Wrapped_##symbol, (void**) &Original_##symbol }
       static const struct
@@ -1005,6 +1026,8 @@ void MemTrace::Shutdown()
   S.m_Encoder.Flush();
 
   closesocket(S.m_Socket);
+
+  UnhookCrt();
 
   MemTracePrint("MemTrace: %u strings written, of which %u were reused\n", s_Stats.m_StringCount, s_Stats.m_ReusedStringCount);
   MemTracePrint("MemTrace: %u stacks written, of which %u were reused\n", s_Stats.m_StackCount, s_Stats.m_ReusedStackCount);
