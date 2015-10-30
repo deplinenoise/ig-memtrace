@@ -56,6 +56,18 @@ namespace MemTrace.Widgets
         return String.Format("{0:n0} B", size);
       };
     }
+          
+    public event EventHandler CellDblClick
+    {
+        add
+        {
+            m_TreeList.DoubleClick += value;
+        }
+        remove
+        {
+            m_TreeList.DoubleClick -= value;
+        }
+    }
 
     public MemTreeNode SelectedNode
     {

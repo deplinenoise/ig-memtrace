@@ -40,7 +40,8 @@ namespace MemTraceTool
 
         case "Orbis":
           return new OrbisSymbolResolver();
-
+        case "PS3":
+          return new PS3SymbolResolver();
         default:
           return null;
       }

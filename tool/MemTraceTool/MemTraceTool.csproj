@@ -54,6 +54,12 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="envdte, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="envdte80, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\packages\Newtonsoft.Json.6.0.8\lib\net40\Newtonsoft.Json.dll</HintPath>
     </Reference>
@@ -112,6 +118,7 @@
     <Compile Include="TreeBuilder.cs" />
     <Compile Include="TraceListItem.cs" />
     <Compile Include="TreePerspective.cs" />
+    <Compile Include="VisualStudioHelper.cs" />
     <Compile Include="WarningWindow.cs">
       <SubType>Form</SubType>
     </Compile>
