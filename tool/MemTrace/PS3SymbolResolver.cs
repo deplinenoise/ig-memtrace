@@ -11,8 +11,6 @@ namespace MemTrace
 {
   public sealed class PS3SymbolResolver : ISymbolResolver
   {
-    private static readonly string s_MangledWellKnownSymbol = "_ZN8MemTraceL10InitCommonEPFvPKvmE";
-
     public bool NeedsExePath { get { return true; } }
     public string ExeExtension { get { return ".elf;*.self"; } }
 
