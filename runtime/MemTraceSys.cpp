@@ -87,7 +87,7 @@ void MemTrace::closesocket(SOCKET s)
 
 MemTrace::FileHandle MemTrace::FileOpenForReadWrite(const char* fn)
 {
-  return open(fn, O_WRONLY|O_CREAT, 0666);
+  return open(fn, O_RDWR|O_CREAT, 0666);
 }
 
 void MemTrace::FileWrite(FileHandle fh, const void* data, size_t size)
