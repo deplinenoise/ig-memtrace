@@ -73,6 +73,19 @@ namespace MemTraceTool
       });
     }
 
+    private void HeapTree_CellDblClick(object sender, EventArgs e)
+    {
+        MemTreeNode selectedNode = m_HeapTree.SelectedNode;
+
+        if (selectedNode == null)
+            return;
+
+        String filename = selectedNode.FileName;
+        int fileline = selectedNode.LineNumber;
+
+        VisualStudioHelper.OpenVisualStudioByFileLine(filename, fileline);
+    }
+
     private void OnTreeUpdated(MemTreeNode root)
     {
       m_HeapTree.SetRoot(root);

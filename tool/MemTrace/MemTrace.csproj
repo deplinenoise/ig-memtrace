@@ -72,6 +72,7 @@
     <Compile Include="EventCode.cs" />
     <Compile Include="ISymbolResolver.cs" />
     <Compile Include="OrbisSymbolResolver.cs" />
+    <Compile Include="PS3SymbolResolver.cs" />
     <Compile Include="TraceTranscoder.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TraceListener.cs" />

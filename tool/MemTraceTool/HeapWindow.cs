@@ -223,6 +223,19 @@ namespace MemTraceTool
       UpdateTree();
     }
 
+    private void HeapTree_CellDblClick(object sender, EventArgs e)
+    {
+        MemTreeNode selectedNode = m_HeapTree.SelectedNode;
+
+        if (selectedNode == null)
+            return;              
+
+        String filename = selectedNode.FileName;        
+        int fileline = selectedNode.LineNumber;
+        
+        VisualStudioHelper.OpenVisualStudioByFileLine(filename, fileline);
+    }
+
     public void GetAllocations(List<FragAllocData> data, ulong addr_lo, ulong addr_hi)
     {
       // Find lower bound.
