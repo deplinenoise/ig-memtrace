@@ -733,7 +733,7 @@ static void MemTrace::HookCrt()
   // On Windows, dynamically hook the CRT allocation functions to route through memtrace.
 
   // Load minhook DLL
-  if (HMODULE minhook_module = LoadLibraryA("MinHook.x86.dll"))
+  if (HMODULE minhook_module = LoadLibraryA("MinHook.x64.dll"))
   {
     auto MH_Initialize_Func = (decltype(&MH_Initialize)) GetProcAddress(minhook_module, "MH_Initialize");
     auto MH_CreateHook_Func = (decltype(&MH_CreateHook)) GetProcAddress(minhook_module, "MH_CreateHook");
