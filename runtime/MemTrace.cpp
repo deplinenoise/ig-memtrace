@@ -744,13 +744,13 @@ static void MemTrace::HookCrt()
       DebugBreak();
     }
 
-#if _MSC_VER != 1800
+#if _MSC_VER != 1924
 #error This needs updating for the new CRT version. Talk to Andreas.
 #endif
 
 #if !defined(_DEBUG)
 
-    if (HMODULE crt_module = GetModuleHandleA("msvcr120.dll"))
+    if (HMODULE crt_module = GetModuleHandleA("ucrtbase.dll"))
     {
 #define IG_WRAP_FN(symbol) { #symbol, (void*) Wrapped_##symbol, (void**) &Original_##symbol }
       static const struct
