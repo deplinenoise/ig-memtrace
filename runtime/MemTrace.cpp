@@ -711,7 +711,7 @@ static void MemTrace::UnhookCrt()
 	// On Windows, dynamically hook the CRT allocation functions to route through memtrace.
 
 	// Load minhook DLL
-	if (HMODULE minhook_module = LoadLibraryA("MinHook.x86.dll"))
+	if (HMODULE minhook_module = LoadLibraryA("MinHook.x64.dll"))
 	{
 		auto MH_DisableHook_Func = (decltype(&MH_DisableHook))GetProcAddress(minhook_module, "MH_DisableHook");
 		auto MH_Uninitialize_Func = (decltype(&MH_Uninitialize))GetProcAddress(minhook_module, "MH_Uninitialize");
@@ -835,6 +835,34 @@ void MemTrace::InitFile(const char* trace_temp_file)
 }
 
 //-----------------------------------------------------------------------------
+
+bool MemTrace::SendSocket(const void* block, size_t size)
+{
+  //
+  char* blockcur = (char*)block;
+  int remaining_size = (int)size;
+  while (remaining_size > 0)
+  {
+    int sent = send(S.m_Socket, blockcur, (int)remaining_size, 0);
+    if (sent == SOCKET_ERROR)
+    {
+      MemTracePrint("MemTrace: send() failed - shutting down\n");
+      ErrorShutdown();
+      return false;
+    }
+    else
+    {
+      remaining_size -= sent;
+      if (remaining_size > 0)
+      {
+        blockcur += sent;
+        Sleep(1);
+      }
+    }
+  }
+  return true;
+}
+
 void MemTrace::InitSocket(const char *server_ip_address, int server_port)
 {
   bool error = false;
@@ -884,7 +912,7 @@ void MemTrace::InitSocket(const char *server_ip_address, int server_port)
 
   // Set send buffer size appropriately to avoid blocking needlessly.
   int sndbufsize = kSocketSendBufferSize;
-  if (0 != setsockopt(sock, SOL_SOCKET, SO_SNDBUF, (char*) &sndbufsize, sizeof sndbufsize))
+  if (0 != setsockopt(sock, SOL_SOCKET, SO_SNDBUF, (char*)&sndbufsize, sizeof sndbufsize))
   {
     MemTracePrint("MemTrace: Warning: Couldn't set send buffer size to %d bytes\n", sndbufsize);
   }
@@ -895,11 +923,8 @@ void MemTrace::InitSocket(const char *server_ip_address, int server_port)
     if (INVALID_SOCKET == S.m_Socket)
       return;
 
-    if (size != send(S.m_Socket, (const char*) block, (int) size, 0))
-    {
-      MemTracePrint("MemTrace: send() failed - shutting down\n");
-      MemTrace::ErrorShutdown();
-    }
+    //
+    SendSocket(block, size);
   };
 
   if (!was_active)
@@ -928,10 +953,10 @@ void MemTrace::InitSocket(const char *server_ip_address, int server_port)
           copy_size = ARRAY_SIZE(buf);
 
         FileRead(fh, buf, copy_size);
-        if (copy_size != send(sock, buf, (int) copy_size, 0))
+        if (!SendSocket(buf, (int)copy_size))
         {
-          MemTracePrint("send() failed while uploading trace file, shutting down.\n");
           error = true;
+		  MemTracePrint("send() failed while uploading trace file, shutting down.\n");
         }
 
         remain -= copy_size;
@@ -1025,7 +1050,7 @@ void MemTrace::Shutdown()
 
   // Flush and shut down writer.
   S.m_Encoder.Flush();
-
+  Sleep(10000); // hack to make sure the gui receive all messages
   closesocket(S.m_Socket);
 
   UnhookCrt();

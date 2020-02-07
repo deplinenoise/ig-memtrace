@@ -51,6 +51,7 @@ namespace MemTrace
   void    InitFile(const char *trace_temp_file);
 
   void    InitSocket(const char *server_ip_address, int server_port);
+  bool    SendSocket(const void* block, size_t size);
 
   void    Shutdown();
 

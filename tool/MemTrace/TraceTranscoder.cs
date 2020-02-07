@@ -639,20 +639,24 @@ namespace MemTrace
       long stkpos = m_Out.BaseStream.Position;
       long stktab_sz = 8 * m_SeenStacks.Count;
       {
-        var buf = new MemoryStream();
-        var bufh = new BinaryWriter(buf);
+        // first pass, write metadata (offsets/counts)
+        var bytes = 0;
         foreach (var s in m_SeenStacks)
         {
           int cnt = s.Length;
-          m_Out.Write((uint)(stktab_sz + buf.Length));
+          m_Out.Write((uint)(stktab_sz + bytes));
           m_Out.Write(cnt);
+          bytes += cnt * 8;
+        }
+
+        // second pass, write content
+        foreach (var s in m_SeenStacks)
+        {
           foreach (ulong addr in s)
           {
-            bufh.Write(addr);
+            m_Out.Write(addr);
           }
         }
-        buf.Position = 0;
-        buf.CopyTo(m_Out.BaseStream);
       }
 
       // Patch up offsets
