@@ -883,7 +883,7 @@ void MemTrace::InitSocket(const char *server_ip_address, int server_port)
   }
 
   // Set send buffer size appropriately to avoid blocking needlessly.
-  int sndbufsize = 4 * kBufferSize;
+  int sndbufsize = kSocketSendBufferSize;
   if (0 != setsockopt(sock, SOL_SOCKET, SO_SNDBUF, (char*) &sndbufsize, sizeof sndbufsize))
   {
     MemTracePrint("MemTrace: Warning: Couldn't set send buffer size to %d bytes\n", sndbufsize);
