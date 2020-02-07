@@ -35,6 +35,7 @@ namespace MemTrace
     public const uint StreamMagic = 0xbfaf0003;
 
     public TraceMeta MetaData { get; private set; }
+    public HashSet<ulong> SymbolsHashSet { get; internal set; } = new HashSet<ulong>();
 
     private const uint BufferSize = 128 * 1024;
     private const uint RingMask = BufferSize - 1;
@@ -405,7 +406,7 @@ namespace MemTrace
               }
               else
               {
-                MetaData.AddWarning("Attempt to allocate already-allocated address {0:x16}", addr);
+                MetaData.AddWarning("Attempt to allocate already-allocated address {0:x16} size {0:x16}", addr, size);
               }
             }
             break;
@@ -529,8 +530,11 @@ namespace MemTrace
           return false;
         }
 
-        if (!MetaData.Symbols.Contains(frames[i]))
+        if (!SymbolsHashSet.Contains(frames[i]))
+        {
           MetaData.Symbols.Add(frames[i]);
+          SymbolsHashSet.Add(frames[i]);
+        }
       }
 
       ++m_SeenStackRollback;
@@ -635,20 +639,24 @@ namespace MemTrace
       long stkpos = m_Out.BaseStream.Position;
       long stktab_sz = 8 * m_SeenStacks.Count;
       {
-        var buf = new MemoryStream();
-        var bufh = new BinaryWriter(buf);
+        // first pass, write metadata (offsets/counts)
+        var bytes = 0;
         foreach (var s in m_SeenStacks)
         {
           int cnt = s.Length;
-          m_Out.Write((uint)(stktab_sz + buf.Length));
+          m_Out.Write((uint)(stktab_sz + bytes));
           m_Out.Write(cnt);
+          bytes += cnt * 8;
+        }
+
+        // second pass, write content
+        foreach (var s in m_SeenStacks)
+        {
           foreach (ulong addr in s)
           {
-            bufh.Write(addr);
+            m_Out.Write(addr);
           }
         }
-        buf.Position = 0;
-        buf.CopyTo(m_Out.BaseStream);
       }
 
       // Patch up offsets

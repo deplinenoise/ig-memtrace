@@ -135,7 +135,16 @@ namespace MemTrace
       }
       else
       {
-        m_Socket.BeginReceive(m_Buffer, 0, m_Buffer.Length, SocketFlags.None, OnDataRead, null);
+          try
+          {
+              m_Socket.BeginReceive(m_Buffer, 0, m_Buffer.Length, SocketFlags.None, OnDataRead, null);
+          }
+          catch (SocketException ex)
+          {
+              Debug.WriteLine("Exception: {0}", ex.Message);
+              OnEndOfInput();
+          }
+      
       }
     }
 
