@@ -35,6 +35,7 @@ namespace MemTrace
     public const uint StreamMagic = 0xbfaf0003;
 
     public TraceMeta MetaData { get; private set; }
+    public HashSet<ulong> SymbolsHashSet { get; internal set; } = new HashSet<ulong>();
 
     private const uint BufferSize = 128 * 1024;
     private const uint RingMask = BufferSize - 1;
@@ -529,8 +530,12 @@ namespace MemTrace
           return false;
         }
 
-        if (!MetaData.Symbols.Contains(frames[i]))
+        if (!SymbolsHashSet.Contains(frames[i]))
+        {
           MetaData.Symbols.Add(frames[i]);
+          SymbolsHashSet.Add(frames[i]);
+        }
+        
       }
 
       ++m_SeenStackRollback;
